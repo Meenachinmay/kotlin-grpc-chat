@@ -19,7 +19,7 @@ class ChatClient(private val channel: ManagedChannel) : Closeable {
 
         val responseObserver = object : StreamObserver<ChatMessage> {
             override fun onNext(message: ChatMessage) {
-                println("\n${message.userName}: ${message.message}")
+                println("${message.userName}: ${message.message}")
                 print("> ")
             }
 

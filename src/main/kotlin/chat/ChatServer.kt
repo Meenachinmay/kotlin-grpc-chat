@@ -3,10 +3,8 @@ package org.example.chat
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
 class ChatServer(private val port: Int) {
@@ -38,30 +36,33 @@ class ChatServer(private val port: Int) {
     private class ChatService : ChatServiceGrpc.ChatServiceImplBase() {
         private val dispatcher = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
         private val messageFlow = MutableSharedFlow<ChatMessage>()
-        private val scope = CoroutineScope(dispatcher)
 
         override fun joinChat(responseObserver: StreamObserver<ChatMessage>): StreamObserver<ChatMessage> {
             println("New client connected")
 
+            val clientScope = CoroutineScope(dispatcher + SupervisorJob())
+
             val requestObserver = object : StreamObserver<ChatMessage> {
                 override fun onNext(message: ChatMessage) {
-                    scope.launch {
+                    clientScope.launch {
                         messageFlow.emit(message)
-                        println("Received: ${message.userName}: ${message.message}")
                     }
+                    println("Received: ${message.userName}: ${message.message}")
                 }
 
                 override fun onError(t: Throwable) {
                     println("Error: ${t.message}")
+                    clientScope.cancel()
                 }
 
                 override fun onCompleted() {
                     println("Client disconnected")
                     responseObserver.onCompleted()
+                    clientScope.cancel()
                 }
             }
 
-            scope.launch {
+            clientScope.launch {
                 messageFlow.collect { message ->
                     responseObserver.onNext(message)
                 }
