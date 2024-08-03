@@ -35,14 +35,12 @@ class ChatClient(private val channel: ManagedChannel) : Closeable {
 
         val requestObserver = stub.joinChat(responseObserver)
 
-        // Launch a coroutine to send messages
         launch {
             messageChannel.consumeAsFlow().collect { message ->
                 requestObserver.onNext(message)
             }
         }
 
-        // Launch a coroutine to read user input
         launch {
             println("You've joined the chat. Type your messages:")
             while (true) {
@@ -60,7 +58,6 @@ class ChatClient(private val channel: ManagedChannel) : Closeable {
             }
         }
 
-        // Keep the main coroutine alive
         joinAll()
     }
 
