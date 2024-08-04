@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+option go_package = "/chats";
 option java_multiple_files = true;
 option java_package = "org.example.chat";
 option java_outer_classname = "ChatProto";
@@ -7,10 +8,22 @@ option java_outer_classname = "ChatProto";
 package chat;
 
 service ChatService {
-  rpc JoinChat(stream ChatMessage) returns (stream ChatMessage) {}
+  rpc GetRooms (Empty) returns (RoomList) {}
+  rpc JoinChat (stream ChatMessage) returns (stream ChatMessage) {}
 }
 
 message ChatMessage {
   string user_name = 1;
   string message = 2;
+}
+
+message Empty {}
+
+message Room {
+  string name = 1;
+  int32 user_count = 2;
+}
+
+message RoomList {
+  repeated Room rooms = 1;
 }
