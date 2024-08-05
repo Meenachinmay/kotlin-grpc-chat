@@ -89,6 +89,7 @@ class ChatService : ChatServiceGrpc.ChatServiceImplBase() {
             println("[$roomName] ${message.userName}: ${message.message}")
         }
 
+        // Joining a room means - connect to a particular room where you are chat with others.
         private fun joinRoom() {
             rooms[roomName]?.users?.add(userName)
             sendServerMessage("You've joined the room: $roomName")
